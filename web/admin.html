@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Usuários</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold">Usuários Cadastrados</h1>
+      <button onclick="loadUsers()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Atualizar</button>
+    </div>
+    <div id="usuarios" class="bg-white rounded-lg shadow overflow-hidden">
+      <div class="p-4 text-center text-gray-500">Carregando...</div>
+    </div>
+  </div>
+
+  <script>
+    async function loadUsers() {
+      try {
+        const res = await fetch('/api/usuarios?limit=100');
+        const data = await res.json();
+        const usuarios = data.usuarios || data;
+        
+        document.getElementById('usuarios').innerHTML = `
+          <table class="w-full">
+            <thead class="bg-gray-50 border-b">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nome</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Criado em</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y">
+              ${usuarios.map(u => `
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <img src="${u.picture}" class="w-10 h-10 rounded-full mr-3">
+                      <span class="font-medium">${u.name}</span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 text-gray-600">${u.email}</td>
+                  <td class="px-6 py-4 text-gray-500">${new Date(u.createdAt).toLocaleDateString('pt-BR')}</td>
+                  <td class="px-6 py-4">
+                    <button onclick="deleteUser('${u._id}', '${u.name}')" class="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700">Excluir</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      } catch (error) {
+        document.getElementById('usuarios').innerHTML = `
+          <div class="p-4 text-center text-red-500">Erro ao carregar usuários</div>
+        `;
+      }
+    }
+    
+    async function deleteUser(id, name) {
+      const modal = document.createElement('div');
+      modal.innerHTML = `
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999; animation: fadeIn 0.2s;">
+          <div style="background: white; padding: 2rem; border-radius: 1rem; max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: slideUp 0.3s;">
+            <div style="width: 48px; height: 48px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+              <svg style="width: 24px; height: 24px; color: #dc2626;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+              </svg>
+            </div>
+            <h3 style="font-size: 1.25rem; font-weight: bold; color: #1f2937; margin-bottom: 0.5rem; text-align: center;">Excluir usuário?</h3>
+            <p style="color: #6b7280; margin-bottom: 1.5rem; text-align: center;">Tem certeza que deseja excluir <strong>${name}</strong>? Esta ação não pode ser desfeita.</p>
+            <div style="display: flex; gap: 0.75rem;">
+              <button onclick="this.closest('div').parentElement.remove()" style="flex: 1; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; background: white; color: #374151; font-weight: 600; cursor: pointer;">Cancelar</button>
+              <button onclick="confirmDelete('${id}')" style="flex: 1; padding: 0.75rem; border: none; border-radius: 0.5rem; background: #dc2626; color: white; font-weight: 600; cursor: pointer;">Excluir</button>
+            </div>
+          </div>
+        </div>
+        <style>
+          @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+          @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        </style>
+      `;
+      document.body.appendChild(modal);
+    }
+    
+    async function confirmDelete(id) {
+      document.querySelector('[style*="position: fixed"]')?.remove();
+      
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/usuarios/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (res.ok) {
+          showToast('Usuário excluído com sucesso!', 'success');
+          loadUsers();
+        } else {
+          showToast('Erro ao excluir usuário', 'error');
+        }
+      } catch (error) {
+        showToast('Erro ao excluir usuário', 'error');
+      }
+    }
+    
+    function showToast(message, type) {
+      const toast = document.createElement('div');
+      const bgColor = type === 'success' ? '#10b981' : '#ef4444';
+      toast.innerHTML = `
+        <div style="position: fixed; top: 20px; right: 20px; background: ${bgColor}; color: white; padding: 1rem 1.5rem; border-radius: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 10000; animation: slideIn 0.3s;">
+          ${message}
+        </div>
+        <style>
+          @keyframes slideIn { from { transform: translateX(400px); } to { transform: translateX(0); } }
+        </style>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+    
+    loadUsers();
+  </script>
+</body>
+</html>

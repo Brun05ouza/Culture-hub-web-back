@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meus Favoritos - Culture Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="css/telaPrincipal.css">
+  <script src="js/auth.js"></script>
+</head>
+<body class="bg-gray-50">
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="container flex justify-between items-center py-4">
+      <div class="flex items-center space-x-8">
+        <a href="telaPrincipal.html" class="text-xl font-bold logo">Culture Hub</a>
+        <nav class="hidden md:flex space-x-6">
+          <a href="telaPrincipal.html" class="nav-link font-medium">Início</a>
+          <a href="meusEventos.html" class="nav-link font-medium">Meus Eventos</a>
+          <a href="telaCalendario.html" class="nav-link font-medium">Eventos</a>
+          <a href="sobreEmpresa.html" class="nav-link font-medium">Sobre Nós</a>
+        </nav>
+      </div>
+      <div class="header-auth"></div>
+    </div>
+  </header>
+
+  <main class="container py-8">
+    <h1 class="text-3xl font-bold mb-6">❤️ Meus Favoritos</h1>
+    <div id="favoritos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="col-span-full flex flex-col items-center justify-center py-16">
+        <div class="w-32 h-32 bg-gradient-to-br from-pink-100 to-red-100 rounded-full flex items-center justify-center mb-6">
+          <span class="text-6xl">💔</span>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">Nenhum favorito ainda</h2>
+        <p class="text-gray-600 mb-6 text-center max-w-md">Explore eventos incríveis e adicione aos favoritos para acessá-los rapidamente</p>
+        <a href="telaPrincipal.html" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full font-semibold hover:shadow-lg transition">Explorar Eventos</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function loadFavoritos() {
+      const favoritos = JSON.parse(localStorage.getItem('favoritos') || '[]');
+      const container = document.getElementById('favoritos');
+      
+      if (favoritos.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full flex flex-col items-center justify-center py-16">
+            <div class="w-32 h-32 bg-gradient-to-br from-pink-100 to-red-100 rounded-full flex items-center justify-center mb-6">
+              <span class="text-6xl">💔</span>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Nenhum favorito ainda</h2>
+            <p class="text-gray-600 mb-6 text-center max-w-md">Explore eventos incríveis e adicione aos favoritos para acessá-los rapidamente</p>
+            <a href="telaPrincipal.html" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full font-semibold hover:shadow-lg transition">Explorar Eventos</a>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = favoritos.map(e => `
+        <div class="bg-white rounded-lg shadow p-4">
+          <img src="${e.imagem || 'img/fundo.jpg'}" class="w-full h-40 object-cover rounded mb-3">
+          <h3 class="font-bold text-lg mb-2">${e.titulo}</h3>
+          <p class="text-sm text-gray-600 mb-3">${e.data}</p>
+          <div class="flex gap-2">
+            <a href="detalheEventos.html?id=${e.id}" class="flex-1 text-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Ver</a>
+            <button onclick="removeFavorito('${e.id}')" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">❌</button>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    function removeFavorito(id) {
+      let favoritos = JSON.parse(localStorage.getItem('favoritos') || '[]');
+      favoritos = favoritos.filter(f => f.id !== id);
+      localStorage.setItem('favoritos', JSON.stringify(favoritos));
+      loadFavoritos();
+    }
+    
+    loadFavoritos();
+  </script>
+</body>
+</html>

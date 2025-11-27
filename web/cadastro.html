@@ -124,14 +124,45 @@
     }
   </style>
 </head>
-<body class="h-screen flex items-center justify-center p-4 overflow-hidden">
-  <div class="glass rounded-2xl shadow-2xl w-full max-w-md p-8 max-h-[95vh] overflow-y-auto">
+<body class="min-h-screen flex items-center justify-center p-4">
+  <div class="grid md:grid-cols-2 gap-8 max-w-5xl w-full">
+    <!-- Info do Site -->
+    <div class="hidden md:flex flex-col justify-center text-white">
+      <h1 class="text-4xl font-bold mb-4">Bem-vindo ao Culture Hub</h1>
+      <p class="text-lg mb-6 opacity-90">A maior plataforma de eventos culturais do Brasil</p>
+      <div class="space-y-4">
+        <div class="flex items-start gap-3">
+          <span class="text-3xl">🎭</span>
+          <div>
+            <h3 class="font-semibold text-lg">Milhares de Eventos</h3>
+            <p class="text-sm opacity-80">Música, teatro, cinema, arte e muito mais</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="text-3xl">🎫</span>
+          <div>
+            <h3 class="font-semibold text-lg">Ingressos Fáceis</h3>
+            <p class="text-sm opacity-80">Compre e gerencie seus ingressos em um só lugar</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="text-3xl">❤️</span>
+          <div>
+            <h3 class="font-semibold text-lg">Favoritos</h3>
+            <p class="text-sm opacity-80">Salve seus eventos preferidos e receba notificações</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Formulário -->
+    <div class="glass rounded-2xl shadow-2xl w-full p-6">
     <div class="text-center mb-8">
       <h1 class="text-3xl font-bold text-gray-900 mb-2">Criar Conta</h1>
       <p class="text-gray-600 text-sm">Descubra eventos culturais incríveis</p>
     </div>
 
-    <form id="cadastroForm" class="space-y-5">
+    <form id="cadastroForm" class="space-y-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">Nome</label>
         <input 
@@ -235,6 +266,7 @@
       </div>
     </div>
   </div>
+  </div>
 
   <script>
     function togglePassword(id) {
@@ -312,7 +344,7 @@
       btn.textContent = 'Cadastrando...';
 
       try {
-        const response = await fetch('/api/cadastro', {
+        const response = await fetch('/api/auth/cadastro', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, email, password })
@@ -320,8 +352,9 @@
 
         const data = await response.json();
 
-        if (response.ok) {
-          localStorage.setItem('user', JSON.stringify(data));
+        if (data.success) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
           btn.textContent = '✓ Conta criada!';
           setTimeout(() => {
             window.location.href = '/telaPrincipal.html';

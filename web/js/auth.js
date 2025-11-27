@@ -9,6 +9,14 @@ function setUser(userData) {
   localStorage.setItem('user', JSON.stringify(userData));
 }
 
+function getToken() {
+  return localStorage.getItem('token');
+}
+
+function setToken(token) {
+  localStorage.setItem('token', token);
+}
+
 function isLoggedIn() {
   return getUser() !== null;
 }
@@ -22,23 +30,77 @@ function requireAuth() {
 }
 
 function logout() {
-  if (confirm('Tem certeza que deseja sair?')) {
-    localStorage.removeItem('user');
-    localStorage.removeItem('rememberMe');
-    window.location.href = '/telaPrincipal.html';
-  }
+  const modal = document.createElement('div');
+  modal.innerHTML = `
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999; animation: fadeIn 0.2s;">
+      <div style="background: white; padding: 2rem; border-radius: 1rem; max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: slideUp 0.3s;">
+        <h3 style="font-size: 1.5rem; font-weight: bold; color: #1f2937; margin-bottom: 0.5rem;">Sair da conta?</h3>
+        <p style="color: #6b7280; margin-bottom: 1.5rem;">Você tem certeza que deseja sair? Você precisará fazer login novamente.</p>
+        <div style="display: flex; gap: 0.75rem;">
+          <button onclick="this.closest('div').parentElement.remove()" style="flex: 1; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; background: white; color: #374151; font-weight: 600; cursor: pointer;">Cancelar</button>
+          <button onclick="confirmLogout()" style="flex: 1; padding: 0.75rem; border: none; border-radius: 0.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: 600; cursor: pointer;">Sair</button>
+        </div>
+      </div>
+    </div>
+    <style>
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+  `;
+  document.body.appendChild(modal);
+}
+
+function confirmLogout() {
+  localStorage.removeItem('user');
+  localStorage.removeItem('token');
+  localStorage.removeItem('rememberMe');
+  window.location.href = '/telaPrincipal.html';
 }
 
 async function updateUserProfile(userId, data) {
+  const token = getToken();
   const r = await fetch(`/api/usuarios/${userId}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
     body: JSON.stringify(data)
   });
   if (!r.ok) throw new Error('Falha ao atualizar perfil');
   const updated = await r.json();
   setUser(updated);
   return updated;
+}
+
+async function handleCadastro(name, email, password) {
+  const r = await fetch('/api/auth/cadastro', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, email, password })
+  });
+  const data = await r.json();
+  if (data.success) {
+    setToken(data.token);
+    setUser(data.user);
+    return data.user;
+  }
+  throw new Error(data.error || 'Erro ao cadastrar');
+}
+
+async function handleLogin(email, password) {
+  const r = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  const data = await r.json();
+  if (data.success) {
+    setToken(data.token);
+    setUser(data.user);
+    return data.user;
+  }
+  throw new Error(data.error || 'Credenciais inválidas');
 }
 
 function updateAuthUI() {
@@ -76,6 +138,18 @@ function updateAuthUI() {
                 </svg>
                 Meus Eventos
               </a>
+              <a href="favoritos.html" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+                Favoritos
+              </a>
+              <a href="notificacoes.html" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                Notificações
+              </a>
               <a href="criarEventos.html" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -104,7 +178,11 @@ function updateAuthUI() {
 }
 
 // Atualizar UI quando a página carregar
-document.addEventListener('DOMContentLoaded', updateAuthUI);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', updateAuthUI);
+} else {
+  updateAuthUI();
+}
 
 function toggleUserMenu() {
   const menu = document.getElementById('userMenu');
@@ -144,12 +222,17 @@ function handleLoginRedirect() {
 
 // Tornar funções globais
 window.logout = logout;
+window.confirmLogout = confirmLogout;
 window.getUser = getUser;
 window.setUser = setUser;
+window.getToken = getToken;
+window.setToken = setToken;
 window.isLoggedIn = isLoggedIn;
 window.requireAuth = requireAuth;
 window.toggleUserMenu = toggleUserMenu;
 window.updateUserProfile = updateUserProfile;
+window.handleCadastro = handleCadastro;
+window.handleLogin = handleLogin;
 
 // Executar proteção ao carregar
 document.addEventListener('DOMContentLoaded', () => {

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notificações - Culture Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="css/telaPrincipal.css">
+  <script src="js/auth.js"></script>
+</head>
+<body class="bg-gray-50">
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="container flex justify-between items-center py-4">
+      <div class="flex items-center space-x-8">
+        <a href="telaPrincipal.html" class="text-xl font-bold logo">Culture Hub</a>
+        <nav class="hidden md:flex space-x-6">
+          <a href="telaPrincipal.html" class="nav-link font-medium">Início</a>
+          <a href="meusEventos.html" class="nav-link font-medium">Meus Eventos</a>
+          <a href="telaCalendario.html" class="nav-link font-medium">Eventos</a>
+          <a href="sobreEmpresa.html" class="nav-link font-medium">Sobre Nós</a>
+        </nav>
+      </div>
+      <div class="header-auth"></div>
+    </div>
+  </header>
+
+  <main class="container py-8 max-w-3xl">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold">🔔 Notificações</h1>
+      <button onclick="clearAll()" class="text-sm text-red-600 hover:underline">Limpar todas</button>
+    </div>
+    
+    <div id="notificacoes" class="space-y-3">
+      <div class="flex flex-col items-center justify-center py-16">
+        <div class="w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-6">
+          <span class="text-6xl">🔔</span>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">Tudo em dia!</h2>
+        <p class="text-gray-600 text-center max-w-md">Você não tem novas notificações no momento</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function loadNotificacoes() {
+      const notifs = JSON.parse(localStorage.getItem('notificacoes') || '[]');
+      const container = document.getElementById('notificacoes');
+      
+      if (notifs.length === 0) {
+        container.innerHTML = `
+          <div class="flex flex-col items-center justify-center py-16">
+            <div class="w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-6">
+              <span class="text-6xl">🔔</span>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Tudo em dia!</h2>
+            <p class="text-gray-600 text-center max-w-md">Você não tem novas notificações no momento</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = notifs.map((n, i) => `
+        <div class="bg-white p-4 rounded-lg shadow flex items-start gap-3 ${n.lida ? 'opacity-60' : ''}">
+          <span class="text-2xl">${n.icon}</span>
+          <div class="flex-1">
+            <p class="font-semibold">${n.titulo}</p>
+            <p class="text-sm text-gray-600">${n.mensagem}</p>
+            <p class="text-xs text-gray-400 mt-1">${n.data}</p>
+          </div>
+          <button onclick="removeNotif(${i})" class="text-gray-400 hover:text-red-600">✕</button>
+        </div>
+      `).join('');
+    }
+    
+    function removeNotif(index) {
+      let notifs = JSON.parse(localStorage.getItem('notificacoes') || '[]');
+      notifs.splice(index, 1);
+      localStorage.setItem('notificacoes', JSON.stringify(notifs));
+      loadNotificacoes();
+    }
+    
+    function clearAll() {
+      if (confirm('Limpar todas as notificações?')) {
+        localStorage.setItem('notificacoes', '[]');
+        loadNotificacoes();
+      }
+    }
+    
+
+    
+    loadNotificacoes();
+  </script>
+</body>
+</html>

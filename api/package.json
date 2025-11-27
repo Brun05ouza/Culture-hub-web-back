@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "nodemon server-new.js",
     "start": "node server-new.js",
-    "seed": "node utils/seedDatabase.js"
+    "seed": "node utils/seedDatabase.js",
+    "vercel-build": "echo Build complete"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
