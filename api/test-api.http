@@ -1,0 +1,102 @@
+# Culture Hub API - Testes
+# Use REST Client extension no VS Code
+
+### Health Check
+GET http://localhost:3000/api/health
+
+### Cadastro
+POST http://localhost:3000/api/auth/cadastro
+Content-Type: application/json
+
+{
+  "name": "João Silva",
+  "email": "joao@example.com",
+  "password": "senha123"
+}
+
+### Login
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "joao@example.com",
+  "password": "senha123"
+}
+
+### Obter Perfil (requer token)
+GET http://localhost:3000/api/auth/me
+Authorization: Bearer SEU_TOKEN_AQUI
+
+### Listar Eventos
+GET http://localhost:3000/api/eventos
+
+### Listar Eventos com Filtros
+GET http://localhost:3000/api/eventos?categoria=Musica&page=1&limit=5
+
+### Buscar Evento Específico
+GET http://localhost:3000/api/eventos/ID_DO_EVENTO
+
+### Criar Evento (requer token)
+POST http://localhost:3000/api/eventos
+Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
+
+{
+  "tituloEvento": "Festival de Música",
+  "descricao": "Grande festival de música ao ar livre",
+  "categoria": "Musica",
+  "dataInicio": "2025-08-15T18:00:00",
+  "dataFim": "2025-08-15T23:00:00",
+  "localizacao": "Parque Ibirapuera, São Paulo",
+  "preco": 50,
+  "capacidade": 1000
+}
+
+### Atualizar Evento (requer token)
+PUT http://localhost:3000/api/eventos/ID_DO_EVENTO
+Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
+
+{
+  "preco": 45,
+  "disponibilidade": "Disponivel"
+}
+
+### Deletar Evento (requer token)
+DELETE http://localhost:3000/api/eventos/ID_DO_EVENTO
+Authorization: Bearer SEU_TOKEN_AQUI
+
+### Inscrever em Evento
+POST http://localhost:3000/api/eventos/ID_DO_EVENTO/inscrever
+Content-Type: application/json
+
+{
+  "usuarioId": "ID_DO_USUARIO"
+}
+
+### Cancelar Inscrição
+DELETE http://localhost:3000/api/eventos/ID_DO_EVENTO/inscrever
+Content-Type: application/json
+
+{
+  "usuarioId": "ID_DO_USUARIO"
+}
+
+### Listar Usuários
+GET http://localhost:3000/api/usuarios?page=1&limit=10
+
+### Buscar Usuário
+GET http://localhost:3000/api/usuarios/ID_DO_USUARIO
+
+### Atualizar Perfil (requer token)
+PUT http://localhost:3000/api/usuarios/ID_DO_USUARIO
+Content-Type: application/json
+Authorization: Bearer SEU_TOKEN_AQUI
+
+{
+  "name": "João Silva Santos",
+  "picture": "https://example.com/nova-foto.jpg"
+}
+
+### Eventos do Usuário
+GET http://localhost:3000/api/usuarios/ID_DO_USUARIO/eventos

@@ -3,11 +3,11 @@ require('dotenv').config();
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/culturehub');
-    console.log('✅ MongoDB conectado');
+    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    console.log(`✅ MongoDB conectado: ${conn.connection.host}`);
   } catch (err) {
-    console.error('❌ Erro ao conectar MongoDB:', err.message);
-    process.exit(1);
+    console.error('❌ Erro MongoDB:', err.message);
+    setTimeout(connectDB, 5000);
   }
 };
 
